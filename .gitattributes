@@ -1,0 +1,125 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from google.colab import files, drive
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import f1_score, recall_score, accuracy_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import plot_roc_curve
+
+drive.mount('/content/drive')
+
+df = pd.read_csv('/content/drive/MyDrive/D1G05/Assignment18/heart.csv')
+
+df.head(10)
+
+"""
+Dicionário das variáveis
+
+age: The person's age in years
+sex: The person's sex (1 = male, 0 = female)
+cp: The chest pain experienced (Value 1: typical angina, Value 2: atypical angina, Value 3: non-anginal pain, Value 4: asymptomatic)
+trestbps: The person's resting blood pressure (mm Hg on admission to the hospital)
+chol: The person's cholesterol measurement in mg/dl
+fbs: The person's fasting blood sugar (> 120 mg/dl, 1 = true; 0 = false)
+restecg: Resting electrocardiographic measurement (0 = normal, 1 = having ST-T wave abnormality, 2 = showing probable or definite left ventricular hypertrophy by Estes' criteria)
+thalach: The person's maximum heart rate achieved
+exang: Exercise induced angina (1 = yes; 0 = no)
+oldpeak: ST depression induced by exercise relative to rest ('ST' relates to positions on the ECG plot. See more here)
+slope: the slope of the peak exercise ST segment (Value 1: upsloping, Value 2: flat, Value 3: downsloping)
+ca: The number of major vessels (0-3)
+thal: A blood disorder called thalassemia (3 = normal; 6 = fixed defect; 7 = reversable defect)
+target: Heart disease (0 = no, 1 = yes)
+
+"""
+
+df.isnull().sum()
+
+df = df.drop_duplicates()
+df.shape
+
+plt.figure(figsize= (20,10))
+a = sns.heatmap(data=df.corr(), annot=True)
+
+sns.countplot(data= df, x='target')
+
+sns.countplot(data=df, x= 'sex', hue='target')
+
+plt.figure(figsize=(20,8))
+sns.countplot(data=df, x='age', hue='target')
+
+lista_cat = ['cp','thal','slope','sex','fbs','restecg','exang']
+lista_num = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'ca', 'target']
+
+df_geral = pd.get_dummies(df,columns=lista_cat)
+df_geral.head()
+
+scaler = MinMaxScaler()
+df_geral[lista_num] = pd.DataFrame(scaler.fit_transform(df_geral[lista_num].values), columns=lista_num, index=df_geral.index)
+
+df_geral.head()
+
+X = df_geral.drop('target', axis=1)
+y = df_geral['target']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
+
+X_train.shape, X_test.shape, y_train.shape, y_test.shape
+
+dtc = DecisionTreeClassifier()
+dtc.fit(X_train, y_train)
+y_dtc = dtc.predict(X_test)
+
+print(f'accuracy_score: {accuracy_score(y_test, y_dtc)}')
+print(f'f1_score: {f1_score(y_test, y_dtc)}')
+print(f'recall_score: {recall_score(y_test, y_dtc)}')
+
+plot_roc_curve(dtc, X_test, y_test)
+
+rfc = RandomForestClassifier()
+rfc.fit(X_train, y_train)
+y_rfc = rfc.predict(X_test)
+
+print(f'accuracy_score: {accuracy_score(y_test, y_rfc)}')
+print(f'f1_score: {f1_score(y_test, y_rfc)}')
+print(f'recall_score: {recall_score(y_test, y_rfc)}')
+
+plot_roc_curve(rfc, X_test, y_test)
+
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+y_nb = nb.predict(X_test)
+
+print(f'accuracy_score: {accuracy_score(y_test, y_nb)}')
+print(f'f1_score: {f1_score(y_test, y_nb)}')
+print(f'recall_score: {recall_score(y_test, y_nb)}')
+
+plot_roc_curve(nb, X_test, y_test)
+
+gbc = GradientBoostingClassifier()
+gbc.fit(X_train, y_train)
+y_gbc = gbc.predict(X_test)
+
+print(f'accuracy_score: {accuracy_score(y_test, y_gbc)}')
+print(f'f1_score: {f1_score(y_test, y_gbc)}')
+print(f'recall_score: {recall_score(y_test, y_gbc)}')
+
+plot_roc_curve(gbc, X_test, y_test)
+
+svc = SVC()
+svc.fit(X_train, y_train)
+y_svc = svc.predict(X_test)
+
+print(f'accuracy_score: {accuracy_score(y_test, y_svc)}')
+print(f'f1_score: {f1_score(y_test, y_svc)}')
+print(f'recall_score: {recall_score(y_test, y_svc)}')
+
+plot_roc_curve(svc, X_test, y_test)
+
+
